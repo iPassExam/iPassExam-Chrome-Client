@@ -1,9 +1,13 @@
+// [cp] - https://developer.chrome.com/apps/identity
+
 var gh = (function() {
   'use strict';
 
   var signin_button;
   var revoke_button;
   var user_info_div;
+
+  console.log("gh");
 
   var tokenFetcher = (function() {
     var clientId = 'dbd9f3596c9b44e6a04a3402324ad206';
@@ -15,6 +19,7 @@ var gh = (function() {
 
     return {
       getToken: function(interactive, callback) {
+        console.log("tokenFetcher.getToken", access_token);
         // In case we already have an access_token cached, simply return it.
         if (access_token) {
           callback(null, access_token);
@@ -28,6 +33,7 @@ var gh = (function() {
                  '&redirect_uri=' + encodeURIComponent(redirectUri)
         };
         
+        console.log("About to launch WebAuthFlow", redirectUri);
         chrome.identity.launchWebAuthFlow(options, function(redirectUri) {
           console.log('launchWebAuthFlow completed', chrome.runtime.lastError, redirectUri);
 
@@ -49,6 +55,7 @@ var gh = (function() {
         });
 
         function parseRedirectFragment(fragment) {
+          console.log("tokenFetcher.getToken.parseRedirectFragment", fragment);
           var pairs = fragment.split(/&/);
           var values = {};
 
@@ -61,7 +68,7 @@ var gh = (function() {
         }
 
         function handleProviderResponse(values) {
-          console.log('providerResponse', values);
+          console.log("tokenFetcher.getToken.handleProviderResponse", values);
           if (values.hasOwnProperty('access_token'))
             setAccessToken(values.access_token);
           // If response does not have an access_token, it might have the code,
@@ -73,6 +80,7 @@ var gh = (function() {
         }
 
         function exchangeCodeForToken(code) {
+          console.log("tokenFetcher.getToken.exchangeCodeForToken", code);
           var xhr = new XMLHttpRequest();
           xhr.open('GET',
                    'http://staging.ipassexam.com/auth/authorize?response_type=token' +
@@ -110,6 +118,7 @@ var gh = (function() {
       },
 
       removeCachedToken: function(token_to_remove) {
+        console.log("tokenFetcher.removeCachedToken");
         if (access_token == token_to_remove)
           access_token = null;
       }
@@ -124,6 +133,7 @@ var gh = (function() {
     getToken();
 
     function getToken() {
+      console.log("getToken");
       tokenFetcher.getToken(interactive, function(error, token) {
         console.log('token fetch', error, token);
         if (error) {
@@ -137,6 +147,7 @@ var gh = (function() {
     }
 
     function requestStart() {
+      console.log("getToken");
       var xhr = new XMLHttpRequest();
       xhr.open(method, url);
       xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
@@ -158,6 +169,7 @@ var gh = (function() {
   }
 
   function getUserInfo(interactive) {
+    console.log("getUserInfo", interactive);
     xhrWithAuth('GET',
                 'http://staging.ipassexam.com:80/v1/account',
                 interactive,
@@ -180,13 +192,15 @@ var gh = (function() {
   }
 
   function onUserInfoFetched(error, status, response) {
+    console.log("onUserInfoFetched");
+    
     if (!error && status == 200) {
       console.log("Got the following user info: " + response);
       var user_info = JSON.parse(response);
       populateUserInfo(user_info);
       hideButton(signin_button);
       showButton(revoke_button);
-      fetchUserRepos(user_info["repos_url"]);
+      fetchUserResources(user_info["repos_url"]);
     } else {
       console.log('infoFetch failed', error, status);
       showButton(signin_button);
@@ -194,6 +208,8 @@ var gh = (function() {
   }
 
   function populateUserInfo(user_info) {
+    console.log("populateUserInfo");
+    
     var elem = user_info_div;
     var nameElem = document.createElement('div');
     nameElem.innerHTML = "<b>Hello " + user_info.partyRoleName + "</b><br>"
@@ -201,11 +217,14 @@ var gh = (function() {
     elem.appendChild(nameElem);
   }
 
-  function fetchUserRepos(repoUrl) {
+  function fetchUserResources(repoUrl) {
+    console.log("fetchUserResources");
     xhrWithAuth('GET', repoUrl, false, onUserReposFetched);
   }
 
   function onUserReposFetched(error, status, response) {
+    console.log("onUserReposFetched");
+    
     var elem = document.querySelector('#user_resources');
     elem.value='';
     if (!error && status == 200) {
@@ -221,6 +240,7 @@ var gh = (function() {
   // Handlers for the buttons's onclick events.
 
   function interactiveSignIn() {
+    console.log("interactiveSignIn");
     disableButton(signin_button);
     tokenFetcher.getToken(true, function(error, access_token) {
       if (error) {
@@ -232,6 +252,7 @@ var gh = (function() {
   }
 
   function revokeToken() {
+    console.log("revokeToken");
     // We are opening the web page that allows user to revoke their token.
     window.open('http://staging.ipassexam.com/account/profile');
     // And then clear the user interface, showing the Sign in button only.
@@ -245,6 +266,8 @@ var gh = (function() {
 
   return {
     onload: function () {
+      console.log("onload");
+      
       signin_button = document.querySelector('#signin');
       signin_button.onclick = interactiveSignIn;
 
@@ -253,13 +276,12 @@ var gh = (function() {
 
       user_info_div = document.querySelector('#user_info');
 
-      console.log(signin_button, revoke_button, user_info_div);
+      //console.log(signin_button, revoke_button, user_info_div);
 
       showButton(signin_button);
-      getUserInfo(false);
+      getUserInfo(true);
     }
   };
 })();
-
 
 window.onload = gh.onload;

@@ -10,10 +10,9 @@
     }
   },
   "permissions": [
-	  "browser",
 	  "storage",
     "identity",
-    "https://github.com/"
+    "http://staging.ipassexam.com/"
   ],
   "icons": {
     "16": "/assets/icons/icon-16.png",

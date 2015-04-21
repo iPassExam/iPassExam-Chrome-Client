@@ -1,0 +1,23 @@
+{
+  "name": "iPassExam Chrome Client",
+  "version": "1.0",
+  "manifest_version": 2,
+  "minimum_chrome_version": "33",
+  "description": "An offline chrome version of iPassExam",
+  "app": {
+    "background": {
+      "scripts": ["main.js"]
+    }
+  },
+  "permissions": [
+	  "browser",
+	  "storage",
+    "identity",
+    "https://github.com/"
+  ],
+  "icons": {
+    "16": "/assets/icons/icon-16.png",
+    "48": "/assets/icons/icon-48.png",
+    "128": "/assets/icons/icon-128.png" 
+  }
+}

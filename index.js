@@ -30,6 +30,8 @@ var gh = (function() {
           'interactive': interactive,
           'url': 'http://staging.ipassexam.com/auth/authorize?embed=true' +
                  '&client_id=' + clientId +
+                 '&scope=user%20store%20lms' +
+                 '&response_type=token' +
                  '&redirect_uri=' + encodeURIComponent(redirectUri)
         };
         
@@ -147,7 +149,7 @@ var gh = (function() {
     }
 
     function requestStart() {
-      console.log("getToken");
+      console.log("requestStart");
       var xhr = new XMLHttpRequest();
       xhr.open(method, url);
       xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
@@ -156,7 +158,7 @@ var gh = (function() {
     }
 
     function requestComplete() {
-      console.log('requestComplete', this.status, this.response);
+      console.log('requestComplete', this.status); //, this.response
       if ( ( this.status < 200 || this.status >=300 ) && retry) {
         retry = false;
         tokenFetcher.removeCachedToken(access_token);
@@ -196,11 +198,17 @@ var gh = (function() {
     
     if (!error && status == 200) {
       console.log("Got the following user info: " + response);
-      var user_info = JSON.parse(response);
-      populateUserInfo(user_info);
+      try {
+        var user_info = JSON.parse(response);
+        populateUserInfo(user_info);
+      } catch (e) {
+        console.log("Error parsing response");
+        console.log(e.message);
+      }
       hideButton(signin_button);
       showButton(revoke_button);
-      fetchUserResources(user_info["repos_url"]);
+      var elem = document.querySelector('#user_resources');
+      elem.value = response;
     } else {
       console.log('infoFetch failed', error, status);
       showButton(signin_button);
@@ -215,26 +223,6 @@ var gh = (function() {
     nameElem.innerHTML = "<b>Hello " + user_info.partyRoleName + "</b><br>"
     	+ "Your page is: " + user_info.uri;
     elem.appendChild(nameElem);
-  }
-
-  function fetchUserResources(repoUrl) {
-    console.log("fetchUserResources");
-    xhrWithAuth('GET', repoUrl, false, onUserReposFetched);
-  }
-
-  function onUserReposFetched(error, status, response) {
-    console.log("onUserReposFetched");
-    
-    var elem = document.querySelector('#user_resources');
-    elem.value='';
-    if (!error && status == 200) {
-      console.log("Got the following user resources:", response);
-      var user_resources = JSON.parse(response);
-      elem.value = response;
-    } else {
-      console.log('infoFetch failed', error, status);
-    }
-    
   }
 
   // Handlers for the buttons's onclick events.

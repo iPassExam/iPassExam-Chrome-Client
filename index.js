@@ -10,8 +10,8 @@ var gh = (function() {
   console.log("gh");
 
   var tokenFetcher = (function() {
-    var clientId = 'dbd9f3596c9b44e6a04a3402324ad206';
-    var clientSecret = 'EudlCHhQLOoPKqYu47RUYJqdPI2gWb1UZ8lu4qq1pHm3crz4dAK4wRgZ9vGNsYQ';
+    var clientId = '821e3f746fa94611adda6f625246d294';
+    var clientSecret = 'NNSbfA431edxba1FmoX1WQYXDf4lDOXgTJghAJ4vulRxhjEfYqTkOAEwdfDmuYb';
     var redirectUri = chrome.identity.getRedirectURL('provider_cb');
     var redirectRe = new RegExp(redirectUri + '[#\?](.*)');
 
@@ -28,7 +28,7 @@ var gh = (function() {
 
         var options = {
           'interactive': interactive,
-          'url': 'http://staging.ipassexam.com/auth/authorize?embed=true' +
+          'url': 'http://home.probert.me.uk/auth/authorize?embed=true' +
                  '&client_id=' + clientId +
                  '&scope=user%20store%20lms' +
                  '&response_type=token' +
@@ -85,7 +85,7 @@ var gh = (function() {
           console.log("tokenFetcher.getToken.exchangeCodeForToken", code);
           var xhr = new XMLHttpRequest();
           xhr.open('GET',
-                   'http://staging.ipassexam.com/auth/authorize?response_type=token' +
+                   'http://home.probert.me.uk/auth/authorize?response_type=token' +
                    '&client_id=' + clientId +
                    '&client_secret=' + clientSecret +
                    '&redirect_uri=' + redirectUri +
@@ -118,7 +118,6 @@ var gh = (function() {
           callback(null, access_token);
         }
       },
-
       removeCachedToken: function(token_to_remove) {
         console.log("tokenFetcher.removeCachedToken");
         if (access_token == token_to_remove)
@@ -173,7 +172,7 @@ var gh = (function() {
   function getUserInfo(interactive) {
     console.log("getUserInfo", interactive);
     xhrWithAuth('GET',
-                'http://staging.ipassexam.com:80/v1/account',
+                'http://home.probert.me.uk/v1/account',
                 interactive,
                 onUserInfoFetched);
   }
@@ -204,11 +203,11 @@ var gh = (function() {
       } catch (e) {
         console.log("Error parsing response");
         console.log(e.message);
+        var elem = document.querySelector('#user_resources');
+        elem.value = response;
       }
       hideButton(signin_button);
       showButton(revoke_button);
-      var elem = document.querySelector('#user_resources');
-      elem.value = response;
     } else {
       console.log('infoFetch failed', error, status);
       showButton(signin_button);
@@ -242,7 +241,7 @@ var gh = (function() {
   function revokeToken() {
     console.log("revokeToken");
     // We are opening the web page that allows user to revoke their token.
-    window.open('http://staging.ipassexam.com/account/profile');
+    window.open('http://home.probert.me.uk/account/profile');
     // And then clear the user interface, showing the Sign in button only.
     // If the user revokes the app authorization, they will be prompted to log
     // in again. If the user dismissed the page they were presented with,
